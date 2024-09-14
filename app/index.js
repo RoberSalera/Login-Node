@@ -7,13 +7,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { methods as authentication} from "./controllers/authentication.controller.js";  
 import exp from "constants";
 import { methods as authorization} from "./middleware/authorization.js";  
-
+import connectDB from "./config/db.js"; 
 
 //Server 
 const app = express();
 app.set("port",4000);
 app.listen(app.get("port"));
 console.log("Servidor corriendo en puerto",app.get("port"));
+
+//Conexion DB
+connectDB();
+
 
 //Configuracion 
 

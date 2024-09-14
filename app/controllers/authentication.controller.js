@@ -1,12 +1,10 @@
 import bcrypjs from "bcryptjs";
 import jsonwebtoken from "jsonwebtoken";
+import User from "../models/User.js";
 import dotenv from "dotenv";
 dotenv.config();
-export const usuarios = [{
-    user: "rober",
-    email: "a@a.com",
-    password: "$2a$05$6c.qoCEcxIyU7R3g.sUdEe21bGp8RP1158YTCDfqJYgF9y3ydcV5C"
-}]
+
+
 
 
 async function login(req,res){
@@ -16,7 +14,7 @@ async function login(req,res){
     if(!user || !password){
         return res.status(400).send({stauts:"Error",message:"Los campos estan incorrectos"})
     }
-    const usuarioARevisar = usuarios.find(usuario=> usuario.user === user);
+    const usuarioARevisar = await User.findOne({ user });
     if (!usuarioARevisar){
         return res.status(400).send({stauts:"Error",message:"Error durante el login"})
     }
@@ -45,22 +43,28 @@ async function register(req,res){
     if(!user || !email || !password){
         return res.status(400).send({stauts:"Error",message:"Los campos estan incorrectos"})
     }
-    const usuarioARevisar = usuarios.find(usuario=> usuario.user === user);
-    //if (usuarioARevisar){
-      //  return res.status(400).send({stauts:"Error",message:"Este usuario ya existe"})
-    //}
+    const usuarioARevisar = await User.findOne({ user });
+    if (usuarioARevisar){
+      return res.status(400).send({stauts:"Error",message:"Este usuario ya existe"})
+    }
 
     const salt = await bcrypjs.genSalt(5);
     const hashPassword =await bcrypjs.hash(password,salt);
     console.log(hashPassword);
-    const nuevoUsuario ={
-        user,email,password:hashPassword
+    try {
+        const nuevoUsuario = new User({
+            user,
+            email,
+            password: hashPassword
+        });
+        console.log(nuevoUsuario);
+        
+        await nuevoUsuario.save();
+        return res.status(201).send({stauts:"ok",message:`Usuario agregado`,redirect:"/"}) 
+    } catch (error) {
+        console.log(error)
     }
-
     
-    usuarios.push(nuevoUsuario);
-    console.log(usuarios);
-    return res.status(201).send({stauts:"ok",message:`Usuario ${nuevoUsuario.user} agregado`,redirect:"/"})
 }
 
 export const methods ={
